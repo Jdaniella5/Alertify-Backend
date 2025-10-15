@@ -3,13 +3,13 @@ import { getFirestore, collection, getDocs, doc, addDoc, serverTimestamp } from 
 
 // Use the same config as frontend
 const firebaseConfig = {
-  apiKey: "AIzaSyCW5_zWpJOlbCD4DNhZNLFhR1ocUycbyD4",
-  authDomain: "alertify-31071.firebaseapp.com",
-  projectId: "alertify-31071",
-  storageBucket: "alertify-31071.firebasestorage.app",
-  messagingSenderId: "550197651053",
-  appId: "1:550197651053:web:91cc31a575b5504c2fc164",
-  measurementId: "G-3PT5EF7L8Y"
+   apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
