@@ -6,7 +6,7 @@ import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore
 import { sendEmail } from "./emailNotification.js";
 
 // Supported tokens per oracle
-const CHAINLINK_COINS = [
+export const CHAINLINK_COINS = [
   "bitcoin", "ethereum", "solana", "litecoin", "cardano",
   "polkadot", "binancecoin", "ripple", "matic-network", "dogecoin",
   "shiba-inu", "avalanche-2", "chainlink", "stellar", "tron",
@@ -15,7 +15,18 @@ const CHAINLINK_COINS = [
   "aave", "synthetix-network-token", "pancakeswap-token", "uniswap"
 ];
 
-const CHAINLINK_SYMBOLS = {
+// Pyth price feed IDs
+export const PYTH_FEEDS = [
+  { symbol: 'btc', id: 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43' },
+  { symbol: 'eth', id: 'ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace' },
+  { symbol: 'sol', id: 'ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d' },
+  { symbol: 'ada', id: '7c3557a34632c1c8556cbcf5d627bb6fb87fb11d2ad49c2b83e9206020dc2eb8' },
+  { symbol: 'bnb', id: '2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f' },
+  { symbol: 'xrp', id: 'ec5d399846a9209f3fe5881d80995ca7f6058a76b0e44cd5cbad4f68c46c2174' },
+  { symbol: 'matic', id: '5de33a9112c2b700c618d803e5c3a862402939a34c2c0a6d09055876213ce5ad' }
+];
+
+export const CHAINLINK_SYMBOLS = {
   "BTC": "bitcoin",
   "ETH": "ethereum",
   "SOL": "solana",
@@ -48,7 +59,7 @@ const CHAINLINK_SYMBOLS = {
   "UNI": "uniswap"
 };
 
-const REDSTONE_SYMBOLS = [
+export const REDSTONE_SYMBOLS = [
   "ETH", "BTC", "SOL", "LINK", "ADA", "BNB", "XRP", 
   "DOGE", "UNI", "AVAX", "ATOM", "TRX", "ARB", "SUI", 
   "OP", "AAVE", "CRV"
@@ -87,24 +98,30 @@ function getTokenInfo(asset) {
 // Fetch price from CoinGecko (Chainlink proxy)
 // Get price from CoinGecko (used for Chainlink)
 async function getChainlinkPrice(asset) {
-  // Find the matching coin from COINS list
-  const coin = COINS.find(c => c.symbol.toLowerCase() === asset.toLowerCase());
-  if (!coin?.id) {
+  const symbol = asset.toLowerCase();
+  const coingeckoId = CHAINLINK_SYMBOLS[symbol.toUpperCase()];
+  
+  if (!coingeckoId) {
     console.log(`${asset} is not supported by Chainlink oracle`);
     return null;
   }
 
   try {
-    await delay(1000);
-    const response = await axios.get(`${COINGECKO_API}/simple/price?ids=${coin.id}&vs_currencies=usd`);
-    const price = response.data?.[coin.id]?.usd;
+    await delay(2000); // Longer delay for CoinGecko rate limits
+    const response = await axios.get(`${COINGECKO_API}/v3/simple/price?ids=${coingeckoId}&vs_currencies=usd`);
+    const price = response.data?.[coingeckoId]?.usd;
     if (price) {
       console.log(`Chainlink price for ${asset}: $${price}`);
     }
     return price || null;
   } catch (error) {
+    if (error.response?.status === 429) {
+      console.log(`CoinGecko rate limit hit for ${asset}, waiting 5 seconds...`);
+      await delay(5000);
+      return getChainlinkPrice(asset); // Retry once
+    }
     console.error(`CoinGecko API error for ${asset}:`, error.message);
-    await delay(2000); // Extra delay on error
+    await delay(2000);
     return null;
   }
 }
@@ -159,7 +176,7 @@ async function getPythPrice(asset) {
 }
 
 // Get price from specified oracle
-async function getPrice(asset, oracle = "Chainlink") {
+export async function getPrice(asset, oracle = "Chainlink") {
   switch (oracle) {
     case "Chainlink":
       return await getChainlinkPrice(asset);
@@ -172,6 +189,9 @@ async function getPrice(asset, oracle = "Chainlink") {
       return await getChainlinkPrice(asset);
   }
 }
+
+// Export the individual price functions
+export { getChainlinkPrice, getRedstonePrice, getPythPrice };
 
 async function checkPrices() {
   try {
