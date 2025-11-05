@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 import axios from "axios";
-import { serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { sendEmail } from "./emailNotification.js";
