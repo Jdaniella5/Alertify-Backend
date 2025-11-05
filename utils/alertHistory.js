@@ -1,5 +1,5 @@
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../config/firebase.js';
 
 // Get alert history for a specific alert
 export async function getAlertHistory(alertId) {
