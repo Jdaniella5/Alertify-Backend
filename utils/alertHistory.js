@@ -34,7 +34,7 @@ export async function getAllAlertHistory({ oracle, asset, limit: resultLimit = 5
       q = query(q, where("oracle", "==", oracle));
     }
     if (asset) {
-      q = query(q, where("asset", "==", asset.toLowerCase()));
+      q = query(q, where("asset", "==", asset, alert.asset?.toLowerCase() || "unkown"));
     }
     q = query(q, limit(resultLimit));
 

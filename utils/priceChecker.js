@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 import axios from "axios";
+import { serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { sendEmail } from "./emailNotification.js";
@@ -256,14 +257,18 @@ async function checkPrices() {
           const historyRef = collection(db, "alertHistory");
           const historyData = {
             alertId: id,
-            asset: alert.asset,
-            oracle: alert.oracle,
-            price: price,
-            type: alert.type,
-            threshold: alert.threshold,
+            asset: alert.asset || "unknown",
+            oracle: alert.oracle || "unknown",
+            price: Number.isFinite(price) ? price : 0,
+            type: alert.type || "unknown",
+            threshold: Number.isFinite(alert.threshold) ? alert.threshold: 0,
             timestamp: serverTimestamp()
           };
           
+          // Remove any undefined or NaN
+const cleanData = Object.fromEntries(
+  Object.entries(historyData).filter(([_, v]) => v !== undefined && v !== null && !Number.isNaN(v))
+);
           console.log("Storing alert history:", historyData);
           await addDoc(historyRef, historyData);
           
