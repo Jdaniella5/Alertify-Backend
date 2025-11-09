@@ -268,8 +268,8 @@ async function checkPrices() {
 const cleanData = Object.fromEntries(
   Object.entries(historyData).filter(([_, v]) => v !== undefined && v !== null && !Number.isNaN(v))
 );
-          console.log("Storing alert history:", historyData);
-          await addDoc(historyRef, historyData);
+          console.log("Storing alert history:", cleanData);
+          await addDoc(historyRef, cleanData);
           
           console.log(`Alert triggered and notification sent for ${alert.asset}`);
         }
